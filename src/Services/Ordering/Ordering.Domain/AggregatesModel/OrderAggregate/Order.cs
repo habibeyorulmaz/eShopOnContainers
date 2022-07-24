@@ -16,6 +16,12 @@ public class Order
     public int? GetBuyerId => _buyerId;
     private int? _buyerId;
 
+
+    // CompletionDate field holds the time the order is completed
+    public DateTime? GetCompletionDate => _orderCompletionDate;
+    private DateTime? _orderCompletionDate;
+
+
     public OrderStatus OrderStatus { get; private set; }
     private int _orderStatusId;
 
@@ -172,6 +178,33 @@ public class Order
             _description = $"The product items don't have stock: ({itemsStockRejectedDescription}).";
         }
     }
+
+    #region Complete Order
+
+
+    /// <summary>
+    /// Set order status and necessary fields and trigged event
+    /// </summary>
+    public void SetCompletedStatus()
+    {
+        if (_orderStatusId != OrderStatus.Paid.Id)
+        {
+            StatusChangeException(OrderStatus.Completed);
+        }
+
+        _orderStatusId = OrderStatus.Completed.Id;
+        _description = $"The order was completed.";
+        AddDomainEvent(new OrderCompletedDomainEvent(this));
+    }
+
+    /// <summary>
+    /// Set _orderCompletionDate when order is completed
+    /// </summary>
+    public void SetOrderCompletionDate()
+    {
+        _orderCompletionDate = DateTime.UtcNow;
+    }
+    #endregion
 
     private void AddOrderStartedDomainEvent(string userId, string userName, int cardTypeId, string cardNumber,
             string cardSecurityNumber, string cardHolderName, DateTime cardExpiration)
